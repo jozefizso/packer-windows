@@ -1,0 +1,63 @@
+{
+  "builders": [{
+      "communicator": "winrm",
+      "type": "vmware-iso",
+      "vm_name": "windows_7_pro_sp1",
+      "iso_url": "{{user `iso_url`}}",
+      "iso_checksum_type": "{{user `iso_checksum_type`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "headless": false,
+      "boot_wait": "2m",
+      "winrm_username": "vagrant",
+      "winrm_password": "vagrant",
+      "winrm_timeout": "30m",
+      "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\"",
+      "guest_os_type": "windows7-64",
+      "disk_size": 61440,
+      "floppy_files": [
+        "{{user `autounattend`}}",
+        "./scripts/init.bat",
+        "./scripts/enable-winrm.bat",
+        "./scripts/disable-updates.ps1",
+        "./scripts/vm-guest-tools.bat"
+      ],
+      "vmdk_name": "windows_7_pro_sp1_vmdk",
+      "vmx_data": {
+        "memsize": "2048",
+        "numvcpus": "2",
+        "scsi0.virtualDev": "lsisas1068",
+        "scsi0:0.virtualSSD": "1",
+        "RemoteDisplay.vnc.enabled": "false",
+        "RemoteDisplay.vnc.port": "5900",
+        "gui.fitguestusingnativedisplayresolution": "FALSE",
+        "scsi0:1.present": "TRUE",
+        "scsi0:1.deviceType": "cdrom-image",
+        "scsi0:1.fileName": "{{user `windows_iso`}}"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "windows-shell",
+      "scripts": [
+        "./scripts/vm-guest-tools.bat",
+        "./scripts/compact.bat"
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "keep_input_artifact": true,
+      "output": "win7x64_pro_{{.Provider}}.box",
+      "vagrantfile_template": "vagrantfile-windows_7.template"
+    }
+  ],
+  "variables": {
+    "iso_url": "iso\\en_windows_7_professional_with_sp1_x64_dvd_u_676939.iso",
+    "iso_checksum_type": "sha1",
+    "iso_checksum": "0BCFC54019EA175B1EE51F6D2B207A3D14DD2B58",
+    "autounattend": "./answer_files/win7x64-pro/Autounattend.xml",
+    "windows_iso": "C:\\Program Files (x86)\\VMware\\VMware Workstation\\windows.iso"
+  }
+}
